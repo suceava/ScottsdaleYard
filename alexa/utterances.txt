@@ -1,0 +1,6 @@
+Start start game
+Start start
+
+PlayerMoveTaxi taxi to {location}
+PlayerMoveBus bus to {location}
+PlayerMoveTrain train to {location}

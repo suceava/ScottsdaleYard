@@ -1,0 +1,36 @@
+{
+  "intents": [
+    {
+      "intent": "Start"
+    },
+    {
+      "intent": "AMAZON.YesIntent"
+    },
+
+    {
+      "intent": "PlayerMoveTaxi",
+      "slots": [{
+        "name": "location",
+        "type": "NUMBER"
+      }]
+    },
+    {
+      "intent": "PlayerMoveBus",
+      "slots": [{
+        "name": "location",
+        "type": "NUMBER"
+      }]
+    },
+    {
+      "intent": "PlayerMoveTrain",
+      "slots": [{
+        "name": "location",
+        "type": "NUMBER"
+      }]
+    },
+
+    {
+      "intent": "AMAZON.HelpIntent"
+    }
+  ]
+}
