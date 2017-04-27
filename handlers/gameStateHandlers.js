@@ -1,13 +1,13 @@
 const Alexa = require('alexa-sdk');
 const Consts = require('../consts.js');
-const Game = require('../game/game.js');
+const Game = require('../game/gameFlow.js');
 
 module.exports = Alexa.CreateStateHandler(Consts.GAME_STATES.GAME, {
     'Start': function () {
-      Game.startRound(this);
+      Game.startTurn(this);
     },
     'AMAZON.YesIntent': function () {
-      Game.startRound(this);
+      Game.startTurn(this);
     },
 
     'PlayerMoveTaxi': function () {
