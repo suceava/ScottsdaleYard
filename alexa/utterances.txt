@@ -1,6 +1,6 @@
 Start start game
 Start start
 
-PlayerMoveTaxi taxi to {location}
-PlayerMoveBus bus to {location}
-PlayerMoveTrain train to {location}
+PlayerMoveTaxi taxi to {position}
+PlayerMoveBus bus to {position}
+PlayerMoveTrain train to {position}

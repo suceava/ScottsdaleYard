@@ -10,21 +10,21 @@
     {
       "intent": "PlayerMoveTaxi",
       "slots": [{
-        "name": "location",
+        "name": "position",
         "type": "NUMBER"
       }]
     },
     {
       "intent": "PlayerMoveBus",
       "slots": [{
-        "name": "location",
+        "name": "position",
         "type": "NUMBER"
       }]
     },
     {
       "intent": "PlayerMoveTrain",
       "slots": [{
-        "name": "location",
+        "name": "position",
         "type": "NUMBER"
       }]
     },

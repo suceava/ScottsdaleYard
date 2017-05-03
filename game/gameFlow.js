@@ -1,29 +1,32 @@
 const Alexa = require('alexa-sdk');
 const Speech = require('ssml-builder');
 const Consts = require('../consts.js');
+const Game = require('./gameLogic.js');
 
 module.exports = {
   start: function(handler) {
-    // set game mode.
+    // set game mode
     handler.handler.state = Consts.GAME_STATES.GAME;
+
+    // get starting positions
+    // MrX is at index 0
+    const positions = Game.getStartingPositions();
 
     const speech = new Speech();
     speech.say('OK, lets get started');
     speech.pause('1s');
     speech.say('Mister X is currently invisible');
-    speech.pause('1s');
-    speech.say('Player 1 starts at 1');
-    speech.pause('1s');
-    speech.say('Player 2 starts at 13');
-    speech.pause('1s');
-    speech.say('Player 3 starts at 138');
-    speech.pause('1s');
-    speech.say('Player 4 starts at 193');
+    for (const i=1; i<=4; i++) {
+      speech.pause('1s');
+      speech.say(`Player ${i} starts at ${positions[i]}`);
+    }
     speech.pause('1s');
     speech.say('Ready for turn 1?');    
 
     const speechOutput = speech.ssml(true);
 
+    handler.attributes["positions"] = positions;
+    handler.attributes["history"] = [{ position: positions[0] }];
     handler.attributes["turn"] = 1;
     handler.emit(':askWithCard', speechOutput, speechOutput, Consts.GAME_NAME, speechOutput);
   },
@@ -33,36 +36,35 @@ module.exports = {
     handler.attributes["player"] = 1;
 
     const speech = new Speech();
-    speech.say('Starting turn ' + turn);
+    speech.say(`Starting turn ${turn}`);
     speech.pause('1s');
     
     this.doMisterXMove(handler, speech);
   },
 
   doMisterXMove: function(handler, inSpeech) {
-    const locations = handler.attributes["locations"] || [];
-    const history = handler.attributes["history"] || [];
+    const positions = handler.attributes["positions"] || [],
+          history = handler.attributes["history"] || [],
+          turn = handler.attributes["turn"];
 
-    // TODO: game logic here
-    const xMove = 'bus';
-    const xLocation = Math.floor(Math.random() * 198) + 1;
-    const xIsVisible = false;
+    // move Mr X
+    const mrx = Game.moveMrX(positions, turn);
 
-    // save location
-    locations[0] = xLocation;
-    handler.attributes["locations"] = locations;
+    // save position
+    positions[0] = mrx.position;
+    handler.attributes["positions"] = positions;
     // save history
     history.push({
-      location: xLocation,
-      move: xMove
+      position: mrx.position,
+      move: mrx.move
     });
     handler.attributes["history"] = history;
 
     const speech = inSpeech || new Speech();
-    speech.say('Mister X took the ' + xMove);
+    speech.say(`Mister X took the ${mrx.move}`);
     speech.pause('1s');
-    if (xIsVisible) {
-      speech.say('Mister X is at ' + xLocation);
+    if (mrx.isVisible) {
+      speech.say(`Mister X is at ${mrx.position}`);
     }
     else {
       speech.say('Mister X is still invisible');
@@ -76,7 +78,7 @@ module.exports = {
     const player = handler.attributes["player"];
 
     const speech = inSpeech || new Speech();
-    speech.say('Player ' + player + ', it\'s your move');
+    speech.say(`Player ${player}, it's your move`);
     speech.pause('1s');
     speech.say('Where do you go?');
     const speechOutput = speech.ssml(true);
@@ -84,17 +86,32 @@ module.exports = {
     handler.emit(':askWithCard', speechOutput)    
   },
 
-  playerMove: function (handler, type, location) {
-    const player = handler.attributes["player"];
-    const turn = handler.attributes["turn"];
-    const locations = handler.attributes["locations"];
+  playerMove: function (handler, type, position) {
+    const player = handler.attributes["player"],
+          turn = handler.attributes["turn"],
+          positions = handler.attributes["positions"];
 
-    // TODO: validate player move
+    // validate player move
+    const currentPosition = positions[player];
+    if (!Game.isMoveValid(currentPosition, position)) {
+      // move is invalid
+      const speech = new Speech();
+      speech.say(`Player ${player}, you cannot move from ${currentPosition} to ${position}`);
+      speech.pause('1s');
+      this.startPlayerMove(handler, speech);
+      return;
+    }
 
-    // TODO: check if player moved on top of Mister X
+    // record the move
+    position[player] = position;
+    handler.attributes["positions"] = positions;
 
-    locations[player] = location;
-    handler.attributes["locations"] = locations;
+    // check if player moved on top of Mister X
+    if (Game.isMrXCaught(positions)) {
+      // Mr X is done
+      handler.emit('Congratulations! You caught Mr. X');
+      return;
+    }
 
     if (player < Consts.MAX_PLAYERS) {
       handler.attributes["player"] = player + 1;
