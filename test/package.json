@@ -1,0 +1,16 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "testGame.js",
+  "scripts": {
+    "test": "mocha ./*.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bespoken-tools": "^0.9.35",
+    "chai": "^3.5.0",
+    "mocha": "^3.3.0"
+  }
+}

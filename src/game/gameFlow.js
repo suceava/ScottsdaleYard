@@ -16,7 +16,7 @@ module.exports = {
     speech.say('OK, lets get started');
     speech.pause('1s');
     speech.say('Mister X is currently invisible');
-    for (const i=1; i<=4; i++) {
+    for (let i=1; i<=4; i++) {
       speech.pause('1s');
       speech.say(`Player ${i} starts at ${positions[i]}`);
     }
