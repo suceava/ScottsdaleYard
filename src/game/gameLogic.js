@@ -8,6 +8,7 @@ module.exports = {
     return [1, 2, 3, 4, 5];
   },
 
+  // move Mr. X and return his move
   moveMrX: function(positions, turn) {
     return {
       position: positions[0] + 1,
@@ -23,6 +24,11 @@ module.exports = {
 
   // returns a boolean indicating if Mr X was caught
   isMrXCaught: function(positions) {
+    for (let i=1; i<=4; i++) {
+      if (positions[0] === positions[i]) {
+        return true;
+      }
+    }
     return false;
   }
 }

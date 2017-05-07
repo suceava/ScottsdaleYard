@@ -1,46 +1,35 @@
 const chai = require('chai');
 const bst = require('bespoken-tools');
+const test = require('./initTest.js');
 
-const assert = chai.assert;
-
-let server = null;
-let alexa = null;
-
-beforeEach(function(done) {
-  server = new bst.LambdaServer('../src/index.js', 10000, true);
-  alexa = new bst.BSTAlexa('http://localhost:10000',
-                            '../alexa/intent_schema.json',
-                            '../alexa/utterances.txt');
-
-  server.start(function() {
-    alexa.start(function(error) {
-      if (error !== undefined) {
-        console.error('Error: ' + error);
-      }
-      else {
-        done();
-      }
-    });
-  });
-});
-
-afterEach(function(done) {
-  alexa.stop(function() {
-    server.stop(function() {
-      done();
-    });
-  });
-});
-
+const expect = chai.expect;
 
 it('Launches and starts', function(done) {
-  alexa.launched(function(error, payload) {
-    assert.equal(payload.response.outputSpeech.ssml, '<speak> Welcome to Scottsdale Yard. Are you ready to catch some bad hombres?  </speak>');
+  test.alexa.launched(function(error, payload) {
+    expect(payload.response.outputSpeech.ssml)
+      .to.contain('Welcome to Scottsdale Yard. Are you ready to catch some bad hombres?');
 
-    alexa.spoken('Yes', function(error, payload) {
-      assert.equal(payload.response.outputSpeech.ssml, '<speak></speak>');
+    // start game
+    test.alexa.spoken('start', function(error, payload) {
+      expect(payload.response.outputSpeech.ssml)
+        .to.contain('OK, lets get started');
+      
+      // start turn 1
+      test.alexa.spoken('yes', function(error, payload) {
+        expect(payload.response.outputSpeech.ssml)
+          .to.contain('Starting turn 1');
+          expect(payload.response.outputSpeech.ssml)
+            .to.contain("Player 1, its your move");
 
-      done();
+        // palyer 1 move
+        test.alexa.spoken('taxi to {3}', function(error, payload) {
+          expect(payload.response.outputSpeech.ssml)
+            .to.contain("Player 2, its your move");
+
+          done();
+        });
+      });
     });
   });
 });
+

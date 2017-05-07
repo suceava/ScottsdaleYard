@@ -32,6 +32,8 @@ module.exports = {
   },
 
   startTurn: function(handler) {
+    handler.handler.state = Consts.GAME_STATES.TURN;
+
     const turn = handler.attributes["turn"];
     handler.attributes["player"] = 1;
 
@@ -78,7 +80,7 @@ module.exports = {
     const player = handler.attributes["player"];
 
     const speech = inSpeech || new Speech();
-    speech.say(`Player ${player}, it's your move`);
+    speech.say(`Player ${player}, it's your move.`);
     speech.pause('1s');
     speech.say('Where do you go?');
     const speechOutput = speech.ssml(true);
@@ -103,7 +105,7 @@ module.exports = {
     }
 
     // record the move
-    position[player] = position;
+    positions[player] = position;
     handler.attributes["positions"] = positions;
 
     // check if player moved on top of Mister X

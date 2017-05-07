@@ -5,6 +5,7 @@ const Speech = require('ssml-builder');
 const Consts = require('./consts.js');
 const startStateHandlers = require('./handlers/startStateHandlers.js');
 const gameStateHandlers = require('./handlers/gameStateHandlers.js');
+const turnStateHandlers = require('./handlers/turnStateHandlers.js');
 const helpHandlers = require('./handlers/helpHandlers.js');
 
 const newSessionHandlers = {
@@ -31,7 +32,12 @@ const newSessionHandlers = {
 
 exports.handler = (event, context) => {
     const alexa = Alexa.handler(event, context);
-    alexa.registerHandlers(newSessionHandlers, startStateHandlers, gameStateHandlers, helpHandlers);
+    alexa.registerHandlers(
+        newSessionHandlers, 
+        startStateHandlers, 
+        gameStateHandlers, 
+        turnStateHandlers, 
+        helpHandlers);
     alexa.APP_ID = Consts.APP_ID;
     alexa.execute();
 };

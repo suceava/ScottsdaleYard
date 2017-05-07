@@ -10,19 +10,6 @@ module.exports = Alexa.CreateStateHandler(Consts.GAME_STATES.GAME, {
       GameFlow.startTurn(this);
     },
 
-    'PlayerMoveTaxi': function () {
-      const location = parseInt(this.event.request.intent.slots.location.value);
-      GameFlow.playerMove(this, 'taxi', location);
-    },
-    'PlayerMoveBus': function () {
-      const location = parseInt(this.event.request.intent.slots.location.value);
-      GameFlow.playerMove(this, 'bus', location);
-    },
-    'PlayerMoveTrain': function () {
-      const location = parseInt(this.event.request.intent.slots.location.value);
-      GameFlow.playerMove(this, 'train', location);
-    },
-
     'AMAZON.StartOverIntent': function () {
         this.handler.state = Consts.GAME_STATES.START;
         this.emitWithState('StartGame', false);
