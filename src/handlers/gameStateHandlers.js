@@ -17,10 +17,6 @@ module.exports = Alexa.CreateStateHandler(Consts.GAME_STATES.GAME, {
     'AMAZON.RepeatIntent': function () {
         this.emit(':ask', this.attributes.speechOutput, this.attributes.repromptText);
     },
-    'AMAZON.HelpIntent': function () {
-        this.handler.state = Consts.GAME_STATES.HELP;
-        this.emitWithState('helpTheUser', false);
-    },
     'AMAZON.StopIntent': function () {
         this.handler.state = Consts.GAME_STATES.HELP;
         const speechOutput = 'Would you like to keep playing?';
@@ -28,6 +24,11 @@ module.exports = Alexa.CreateStateHandler(Consts.GAME_STATES.GAME, {
     },
     'AMAZON.CancelIntent': function () {
         this.emit(':tell', 'Ok, let\'s play again soon.');
+    },
+
+    'AMAZON.HelpIntent': function () {
+        this.handler.state = Consts.GAME_STATES.HELP;
+        this.emitWithState('helpTheUser', false);
     },
     'Unhandled': function () {
         const speechOutput = `Just play the game`;

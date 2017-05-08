@@ -14,5 +14,18 @@ module.exports = Alexa.CreateStateHandler(Consts.GAME_STATES.TURN, {
     'PlayerMoveTrain': function () {
       const position = parseInt(this.event.request.intent.slots.position.value);
       GameFlow.playerMove(this, 'train', position);
+    },
+
+    'AMAZON.HelpIntent': function () {
+        this.handler.state = Consts.GAME_STATES.HELP;
+        this.emitWithState('helpTheUser', false);
+    },
+    'Unhandled': function () {
+        const speechOutput = `Just play the game`;
+        this.emit(':ask', speechOutput, speechOutput);
+    },
+    'SessionEndedRequest': function () {
+        const speechOutput = 'OK, Goodbye!';
+        this.emit(':tell', speechOutput);
     }
 });

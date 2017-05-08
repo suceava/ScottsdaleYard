@@ -15,7 +15,8 @@ module.exports = Alexa.CreateStateHandler(Consts.GAME_STATES.START, {
         this.emitWithState('helpTheUser', true);
     },
     'Unhandled': function () {
-        this.emit('StartGame', true);
+        const speechOutput = `Just play the game`;
+        this.emit(':ask', speechOutput, speechOutput);
     },
     'SessionEndedRequest': function () {
         const speechOutput = 'OK, Goodbye!';
