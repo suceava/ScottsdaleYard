@@ -3,6 +3,15 @@ const Speech = require('ssml-builder');
 const Consts = require('../consts.js');
 const Game = require('./gameLogic.js');
 
+function addHistory(history, turn, player, position, move) {
+  const turnHistory = history[turn] || [];
+  turnHistory[player] = {
+    position: position,
+    move: move
+  };
+  history[turn] = turnHistory;
+}
+
 module.exports = {
   start: function(handler) {
     // set game mode
@@ -16,7 +25,7 @@ module.exports = {
     speech.say('OK, lets get started');
     speech.pause('1s');
     speech.say('Mister X is currently invisible');
-    for (let i=1; i<=4; i++) {
+    for (let i=1; i<positions.length; i++) {
       speech.pause('1s');
       speech.say(`Player ${i} starts at ${positions[i]}`);
     }
@@ -25,8 +34,13 @@ module.exports = {
 
     const speechOutput = speech.ssml(true);
 
+    // save starting history
+    const history = [];
+    for (let i=0; i<positions.length; i++) {
+      addHistory(history, 0, i, positions[i], 'start');
+    }
     handler.attributes["positions"] = positions;
-    handler.attributes["history"] = [{ position: positions[0] }];
+    handler.attributes["history"] = history;
     handler.attributes["turn"] = 1;
     handler.emit(':askWithCard', speechOutput, speechOutput, Consts.GAME_NAME, speechOutput);
   },
@@ -56,10 +70,7 @@ module.exports = {
     positions[0] = mrx.position;
     handler.attributes["positions"] = positions;
     // save history
-    history.push({
-      position: mrx.position,
-      move: mrx.move
-    });
+    addHistory(history, turn, 0, mrx.position, mrx.move);
     handler.attributes["history"] = history;
 
     const speech = inSpeech || new Speech();
@@ -91,7 +102,8 @@ module.exports = {
   playerMove: function (handler, type, position) {
     const player = handler.attributes["player"],
           turn = handler.attributes["turn"],
-          positions = handler.attributes["positions"];
+          positions = handler.attributes["positions"],
+          history = handler.attributes["history"];
 
     // validate player move
     const currentPosition = positions[player];
@@ -108,6 +120,10 @@ module.exports = {
     positions[player] = position;
     handler.attributes["positions"] = positions;
 
+    // save history
+    addHistory(history, turn, player, position, type);
+    handler.attributes["history"] = history;
+
     // check if player moved on top of Mister X
     if (Game.isMrXCaught(positions)) {
       // Mr X is done
@@ -115,11 +131,11 @@ module.exports = {
       return;
     }
 
-    if (player < Consts.MAX_PLAYERS) {
+    if (player < Game.CONSTS.MAX_PLAYERS) {
       handler.attributes["player"] = player + 1;
       this.startPlayerMove(handler);
     }
-    else if (turn < Consts.MAX_TURNS) {
+    else if (turn < Game.CONSTS.MAX_TURNS) {
       handler.attributes["turn"] = turn + 1;
       this.startTurn(handler);    
     }
