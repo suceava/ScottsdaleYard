@@ -127,7 +127,7 @@ module.exports = {
     // check if player moved on top of Mister X
     if (Game.isMrXCaught(positions)) {
       // Mr X is done
-      handler.emit('Congratulations! You caught Mr. X');
+      handler.emit(':tell', 'Congratulations! You caught Mr. X');
       return;
     }
 
@@ -140,7 +140,7 @@ module.exports = {
       this.startTurn(handler);    
     }
     else {
-      handler.emit('Game over, man! Game Over!');
+      handler.emit(':tell', 'Game over, man! Game Over!');
     }
   }
 }
