@@ -18,11 +18,18 @@ it('Launches and starts', function(done) {
       test.alexa.spoken('yes', function(error, payload) {
         expect(payload.response.outputSpeech.ssml)
           .to.contain('Starting turn 1');
-          expect(payload.response.outputSpeech.ssml)
+        expect(payload.response.outputSpeech.ssml)
             .to.contain("Player 1, its your move");
+        
+        expect(payload.sessionAttributes)
+          .to.not.be.null;
+        expect(payload.sessionAttributes.positions)
+          .to.not.be.null;
+
+        const positions = payload.sessionAttributes.positions;
 
         // palyer 1 move
-        test.alexa.spoken('taxi to {3}', function(error, payload) {
+        test.alexa.spoken(`taxi to {${positions[1] + 1}}`, function(error, payload) {
           expect(payload.response.outputSpeech.ssml)
             .to.contain("Player 2, its your move");
 

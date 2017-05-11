@@ -11,9 +11,29 @@ module.exports = {
   },
 
 
-  // returns an array with the starting positions of Mr X and the 4 players
+  // returns an array with the starting positions of Mr X and the players
   getStartingPositions: function() {
-    return [1, 2, 3, 4, 5];
+    const positions = [];
+
+    // Mr. X
+    let random = Math.floor((Math.random() * this.CONSTS.MRX_STARTING_POSITIONS.length) + 1);
+    positions.push(this.CONSTS.MRX_STARTING_POSITIONS[random - 1]);
+    
+    // Players
+    const startingPos = this.CONSTS.PLAYER_STARTING_POSITIONS;
+    const len = startingPos.length - 1;
+    let pos;
+    for (let i=1; i<= this.CONSTS.MAX_PLAYERS; i++) {
+      do {
+        random = Math.floor(Math.random() * len);
+        pos = startingPos[random];
+      } 
+      while (positions.indexOf(pos) >= 0);
+
+      positions.push(pos);
+    }
+
+    return positions;
   },
 
   // move Mr. X and return his move
