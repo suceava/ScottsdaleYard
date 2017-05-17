@@ -1,19 +1,20 @@
 const Alexa = require('alexa-sdk');
 const Consts = require('../consts.js');
 const GameFlow = require('../game/gameFlow.js');
+const Game = require('../game/gameLogic.js');
 
 module.exports = Alexa.CreateStateHandler(Consts.GAME_STATES.TURN, {
     'PlayerMoveTaxi': function () {
       const position = parseInt(this.event.request.intent.slots.position.value);
-      GameFlow.playerMove(this, 'taxi', position);
+      GameFlow.playerMove(this, Game.CONSTS.TRANSPORTATION.TAXI, position);
     },
     'PlayerMoveBus': function () {
       const position = parseInt(this.event.request.intent.slots.position.value);
-      GameFlow.playerMove(this, 'bus', position);
+      GameFlow.playerMove(this, Game.CONSTS.TRANSPORTATION.BUS, position);
     },
     'PlayerMoveTrain': function () {
       const position = parseInt(this.event.request.intent.slots.position.value);
-      GameFlow.playerMove(this, 'train', position);
+      GameFlow.playerMove(this, Game.CONSTS.TRANSPORTATION.TRAIN, position);
     },
 
     'AMAZON.HelpIntent': function () {

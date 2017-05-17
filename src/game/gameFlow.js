@@ -99,7 +99,7 @@ module.exports = {
     handler.emit(':askWithCard', speechOutput)    
   },
 
-  playerMove: function (handler, type, position) {
+  playerMove: function (handler, transportation, position) {
     const player = handler.attributes["player"],
           turn = handler.attributes["turn"],
           positions = handler.attributes["positions"],
@@ -107,7 +107,7 @@ module.exports = {
 
     // validate player move
     const currentPosition = positions[player];
-    if (!Game.isMoveValid(currentPosition, position)) {
+    if (!Game.isMoveValid(currentPosition, position, transportation)) {
       // move is invalid
       const speech = new Speech();
       speech.say(`Player ${player}, you cannot move from ${currentPosition} to ${position}`);
@@ -121,7 +121,7 @@ module.exports = {
     handler.attributes["positions"] = positions;
 
     // save history
-    addHistory(history, turn, player, position, type);
+    addHistory(history, turn, player, position, transportation);
     handler.attributes["history"] = history;
 
     // check if player moved on top of Mister X

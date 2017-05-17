@@ -6,6 +6,12 @@ module.exports = {
   CONSTS: {
     MAX_PLAYERS: 2,
     MAX_TURNS: 2,
+    TRANSPORTATION: {
+      TAXI: 0,
+      BUS: 1,
+      TRAIN: 2,
+      BOAT: 3
+    },
     PLAYER_STARTING_POSITIONS: [13,26,29,34,50,53,91,94,103,112,117,123,138,141,155,174],
     MRX_STARTING_POSITIONS: [35,45,51,71,78,104,106,127,132,146,166,170,172],
 
@@ -263,10 +269,50 @@ module.exports = {
     //#endregion
   },
 
+  // returns an array with 200 integers.  
+  // each integer represents the distance from that location to the input location
+  _generateDistanceArray: function(location) {
+    const distanceArray = Array(200).fill(999);
+
+    this._discoverNode(location, 0, distanceArray);
+
+    return distanceArray;
+  },
+
+  _discoverNode: function(location, distance, distanceArray) {
+    distanceArray[location] = distance;
+
+    const nodes = this._getNode(location);
+    for (let i = 0; i < nodes.length; i++)
+    {
+      const nextLocation = nodes[i][0];
+      if (distanceArray[nextLocation] > distance + 1) {
+        this._discoverNode(nextLocation, distance + 1, distanceArray);
+      }
+    }
+  },
   _getNode: function(position) {
     return this.CONSTS.NODES[position];
   },
+  // takes two locations and returns the "best transportion type" where boat is best and taxi is worst
+  _getBestTransportationType: function(loc1, loc2) {
+    const nodes = this._getNode(loc1);
+    const potentialNodes = [];
+    for (let i = 0; i < nodes.length; i++) {
+      if (nodes[i][0] == loc2) {
+        potentialNodes.push(nodes[i][0], nodes[i][1]);
+      }
+    }
 
+    // now get the highest transportation value in the connections that exist
+    let transNumber = 0;
+    for (let i = 0; i < potentialNodes.length; i++) {
+      if (potentialNodes[i][1] > transNumber) {
+        transNumber = potentialNodes[i][1];
+      }
+    }
+    return transNumber;
+  },
 
   // returns an array with the starting positions of Mr X and the players
   getStartingPositions: function() {
@@ -295,20 +341,100 @@ module.exports = {
 
   // move Mr. X and return his move
   moveMrX: function(positions, turn) {
+    // generate the players' heat maps
+    const heatMaps = []; // null for index 0
+    for (let i = 1; i <= this.CONSTS.MAX_PLAYERS; i++) {
+      heatMaps.push(this._generateDistanceArray(positions[i]));
+    }
+
+    // now compare the heatmaps and combine into one map by taking the lowest value for each
+    var fHeatMap = [];
+    for (let i = 0; i < 200; i++) {
+      let thisNumber = 999;
+      // in heatMaps array player 1 is at index 0
+      for (let j = 0; j < this.CONSTS.MAX_PLAYERS; j++) {
+        if (heatMaps[j][i] < thisNumber) {
+          thisNumber = heatMaps[j][i];
+        }
+      }
+      fHeatMap.push(thisNumber);
+    }
+
+    // ok so now we get into the AI
+    // pull out only the locations that touch Mr. X from the heat map
+    const mrxHeatMap = [];
+    // this array will be [a,b] where a is the location and b is the heatmap value
+
+    const nodes = this._getNode(positions[0]);
+    for (let i = 0; i < nodes.length; i++) {
+      const thismrxHeatMapNode = [nodes[i][0], fHeatMap[nodes[i][0]]];
+      mrxHeatMap.push(thismrxHeatMapNode);
+    }
+    console.log('mrxHeatMap');
+    console.log(mrxHeatMap);
+
+    // now find the largest heatmap number
+    let heatNumber = 0;
+    for (let i = 0; i < mrxHeatMap.length; i++) {
+      if (mrxHeatMap[i][1] > heatNumber) {
+        heatNumber = mrxHeatMap[i][1];
+      }
+    }
+    console.log('heatNumber');
+    console.log(heatNumber);
+
+    // now extract all moves that are the heatmap number, but now include a third element for transportation
+    const finalHeatMap = [];
+    for (let i = 0; i < mrxHeatMap.length; i++) {
+      if (mrxHeatMap[i][1] == heatNumber) {
+        var thisTransportationType = this._getBestTransportationType(positions[0], mrxHeatMap[i][0]);
+        var thisElement = [mrxHeatMap[i][0], mrxHeatMap[i][1], thisTransportationType];
+        finalHeatMap.push(thisElement);
+      }
+    }
+    console.log('finalHeatMap');
+    console.log(finalHeatMap);
+
+    // weed out the remaining possibilities based on transportation type
+    let highestTransportationNumber = 0;
+    for (let i = 0; i < finalHeatMap.length; i++) {
+      if (finalHeatMap[i][1] > highestTransportationNumber) {
+        highestTransportationNumber = finalHeatMap[i][2];
+      }
+    }
+    console.log(highestTransportationNumber);
+
+    // now make an array of the final heatmap that will be randomized for movement
+    const finalFinalHeatmap = [];
+    for (let i = 0; i < finalHeatMap.length; i++) {
+      if (finalHeatMap[i][2] == highestTransportationNumber) {
+        finalFinalHeatmap.push([finalHeatMap[i][0], finalHeatMap[i][1], finalHeatMap[i][2]]);
+      }
+    }
+    console.log('finalFinalHeatmap');
+    console.log(finalFinalHeatmap);
+
+    // randomly pick a destination from this list
+    const random = Math.floor((Math.random() * finalFinalHeatmap.length));
+    console.log(`random ${random}`);
+
+//    var mrx_move = new MrXMoveObject(finalFinalHeatmap[random][0], GetTransportationTypeString(finalFinalHeatmap[random][2]), dead, fHeatMap);
+
     return {
-      position: positions[0] + 1,
-      move: 'bus',
-      isVisible: false
+      position: finalFinalHeatmap[random][0],
+      transportation: finalFinalHeatmap[random][2],
+      isVisible: false,
+      dead: (heatNumber == 0) // nowhere to move
     };
   },
 
   // returns a boolean indicating if a player can move from startPostion to endPosition
-  isMoveValid: function(startPosition, endPosition) {
+  isMoveValid: function(startPosition, endPosition, transportation) {
     const startNode = this._getNode(startPosition);
 
     for (let j = 0; j < startNode.length; j++)
     {
-      if (startNode[j][0] == endPosition && startNode[j][1] != 3) {  // 3 because players cannot take boats
+      if (startNode[j][0] == endPosition && startNode[j][1] === transportation) {
         return true;
       }
     }
@@ -317,7 +443,7 @@ module.exports = {
 
   // returns a boolean indicating if Mr X was caught
   isMrXCaught: function(positions) {
-    for (let i=1; i<=this.CONSTS.MAX_PLAYERS; i++) {
+    for (let i = 1; i <= this.CONSTS.MAX_PLAYERS; i++) {
       if (positions[0] === positions[i]) {
         return true;
       }
