@@ -1,8 +1,10 @@
+'use strict'
+
 /*
 The `positions` array parameter passed to these functions contains the positions of all players
   Mr X position is at index 0, Player 1 at index 1, and so on
 */
-module.exports = {
+const GAME_LOGIC = {
   CONSTS: {
     MAX_PLAYERS: 4,
     MAX_TURNS: 22,
@@ -441,4 +443,16 @@ module.exports = {
     }
     return false;
   }
+};
+
+
+// export it
+if( typeof exports !== 'undefined' ) {
+  if( typeof module !== 'undefined' && module.exports ) {
+    exports = module.exports = GAME_LOGIC;
+  }
+  exports.GAME_LOGIC = GAME_LOGIC;
+} 
+else {
+  this.GAME_LOGIC = GAME_LOGIC;
 }
