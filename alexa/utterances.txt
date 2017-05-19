@@ -1,6 +1,18 @@
 Start start game
 Start start
 
+PlayerMoveAny move to {position}
+PlayerMoveAny move {position}
+PlayerMoveAny to move to {position}
+PlayerMoveAny that I move to {position}
+PlayerMoveAny to move me to {position}
+PlayerMoveAny move me to {position}
+
 PlayerMoveTaxi taxi to {position}
+PlayerMoveTaxi taxi {position}
+
 PlayerMoveBus bus to {position}
+PlayerMoveBus bus {position}
+
 PlayerMoveTrain train to {position}
+PlayerMoveTrain train {position}

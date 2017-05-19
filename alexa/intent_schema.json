@@ -8,6 +8,13 @@
     },
 
     {
+      "intent": "PlayerMoveAny",
+      "slots": [{
+        "name": "position",
+        "type": "NUMBER"
+      }]
+    },
+    {
       "intent": "PlayerMoveTaxi",
       "slots": [{
         "name": "position",

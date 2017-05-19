@@ -411,8 +411,6 @@ const GAME_LOGIC = {
     // randomly pick a destination from this list
     const random = Math.floor((Math.random() * finalFinalHeatmap.length));
 
-//    var mrx_move = new MrXMoveObject(finalFinalHeatmap[random][0], GetTransportationTypeString(finalFinalHeatmap[random][2]), dead, fHeatMap);
-
     return {
       position: finalFinalHeatmap[random][0],
       transportation: finalFinalHeatmap[random][2],

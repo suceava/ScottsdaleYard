@@ -101,18 +101,37 @@ module.exports = {
     handler.emit(':askWithCard', speechOutput)    
   },
 
-  playerMove: function (handler, transportation, position) {
+  playerMove: function (handler, position, transportation) {
     const player = handler.attributes["player"],
           turn = handler.attributes["turn"],
           positions = handler.attributes["positions"],
           history = handler.attributes["history"];
+    let localTransportation = transportation;
 
     // validate player move
     const currentPosition = positions[player];
-    if (!Game.isMoveValid(currentPosition, position, transportation)) {
+    let isMoveValid = false;
+    if (typeof transportation === 'undefined') {
+      // loop through transportations, lowest to highest, and try to find a valid move
+      const ts = [Game.CONSTS.TRANSPORTATION.TAXI, Game.CONSTS.TRANSPORTATION.BUS, Game.CONSTS.TRANSPORTATION.TRAIN];
+      for (let i = 0; i < ts.length; i++) {
+        localTransportation = ts[i];
+        if (Game.isMoveValid(currentPosition, position, localTransportation)) {
+          isMoveValid = true;
+          break;
+        }
+      }
+    }
+    else {
+      // specific transportation
+      isMoveValid = Game.isMoveValid(currentPosition, position, localTransportation);
+    }
+
+    if (!isMoveValid) {
       // move is invalid
+      const transportationString = (typeof transportation !== 'undefined') ? ` by ${TRANSPORTATION_STRINGS[transportation]}` : ''
       const speech = new Speech();
-      speech.say(`Player ${player}, you cannot move from ${currentPosition} to ${position}`);
+      speech.say(`Player ${player}, you cannot move from ${currentPosition} to ${position}${transportationString}`);
       speech.pause('1s');
       this.startPlayerMove(handler, speech);
       return;
@@ -123,7 +142,7 @@ module.exports = {
     handler.attributes["positions"] = positions;
 
     // save history
-    addHistory(history, turn, player, position, transportation);
+    addHistory(history, turn, player, position, localTransportation);
     handler.attributes["history"] = history;
 
     // check if player moved on top of Mister X
