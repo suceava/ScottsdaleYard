@@ -3,6 +3,8 @@ const Speech = require('ssml-builder');
 const Consts = require('../consts.js');
 const Game = require('./gameLogic.js');
 
+const TRANSPORTATION_STRINGS = ['taxi', 'bus', 'train', 'boat'];
+
 function addHistory(history, turn, player, position, move) {
   const turnHistory = history[turn] || [];
   turnHistory[player] = {
@@ -70,11 +72,11 @@ module.exports = {
     positions[0] = mrx.position;
     handler.attributes["positions"] = positions;
     // save history
-    addHistory(history, turn, 0, mrx.position, mrx.move);
+    addHistory(history, turn, 0, mrx.position, mrx.transportation);
     handler.attributes["history"] = history;
 
     const speech = inSpeech || new Speech();
-    speech.say(`Mister X took the ${mrx.move}`);
+    speech.say(`Mister X took the ${TRANSPORTATION_STRINGS[mrx.transportation]}`);
     speech.pause('1s');
     if (mrx.isVisible) {
       speech.say(`Mister X is at ${mrx.position}`);

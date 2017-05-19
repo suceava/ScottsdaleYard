@@ -4,8 +4,8 @@ The `positions` array parameter passed to these functions contains the positions
 */
 module.exports = {
   CONSTS: {
-    MAX_PLAYERS: 2,
-    MAX_TURNS: 2,
+    MAX_PLAYERS: 4,
+    MAX_TURNS: 22,
     TRANSPORTATION: {
       TAXI: 0,
       BUS: 1,
@@ -14,6 +14,7 @@ module.exports = {
     },
     PLAYER_STARTING_POSITIONS: [13,26,29,34,50,53,91,94,103,112,117,123,138,141,155,174],
     MRX_STARTING_POSITIONS: [35,45,51,71,78,104,106,127,132,146,166,170,172],
+    MRX_VISIBLE_TURNS: [3, 8, 13, 18, 22],
 
     //#region nodes
 
@@ -370,8 +371,6 @@ module.exports = {
       const thismrxHeatMapNode = [nodes[i][0], fHeatMap[nodes[i][0]]];
       mrxHeatMap.push(thismrxHeatMapNode);
     }
-    console.log('mrxHeatMap');
-    console.log(mrxHeatMap);
 
     // now find the largest heatmap number
     let heatNumber = 0;
@@ -380,8 +379,6 @@ module.exports = {
         heatNumber = mrxHeatMap[i][1];
       }
     }
-    console.log('heatNumber');
-    console.log(heatNumber);
 
     // now extract all moves that are the heatmap number, but now include a third element for transportation
     const finalHeatMap = [];
@@ -392,8 +389,6 @@ module.exports = {
         finalHeatMap.push(thisElement);
       }
     }
-    console.log('finalHeatMap');
-    console.log(finalHeatMap);
 
     // weed out the remaining possibilities based on transportation type
     let highestTransportationNumber = 0;
@@ -402,7 +397,6 @@ module.exports = {
         highestTransportationNumber = finalHeatMap[i][2];
       }
     }
-    console.log(highestTransportationNumber);
 
     // now make an array of the final heatmap that will be randomized for movement
     const finalFinalHeatmap = [];
@@ -411,19 +405,16 @@ module.exports = {
         finalFinalHeatmap.push([finalHeatMap[i][0], finalHeatMap[i][1], finalHeatMap[i][2]]);
       }
     }
-    console.log('finalFinalHeatmap');
-    console.log(finalFinalHeatmap);
 
     // randomly pick a destination from this list
     const random = Math.floor((Math.random() * finalFinalHeatmap.length));
-    console.log(`random ${random}`);
 
 //    var mrx_move = new MrXMoveObject(finalFinalHeatmap[random][0], GetTransportationTypeString(finalFinalHeatmap[random][2]), dead, fHeatMap);
 
     return {
       position: finalFinalHeatmap[random][0],
       transportation: finalFinalHeatmap[random][2],
-      isVisible: false,
+      isVisible: this.CONSTS.MRX_VISIBLE_TURNS.indexOf(turn) >= 0,
       dead: (heatNumber == 0) // nowhere to move
     };
   },
