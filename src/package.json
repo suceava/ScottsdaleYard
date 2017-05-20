@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "alexa-sdk": "^1.0.8",
+    "dynasty": "^0.2.7",
     "ssml-builder": "^0.1.0"
   },
   "devDependencies": {},

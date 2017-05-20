@@ -43,14 +43,14 @@ it('Launches and starts', function(done) {
             .to.contain("Player 1, its your move");
         
         expect(payload.sessionAttributes)
-          .to.not.be.null;
-        expect(payload.sessionAttributes.positions)
-          .to.not.be.null;
+          .to.not.be.undefined;
+        expect(payload.sessionAttributes.game_state)
+          .to.not.be.undefined;
 
-        const positions = payload.sessionAttributes.positions;
+        const state = payload.sessionAttributes.game_state;
 
         // palyer 1 move
-        test.alexa.spoken(`taxi to {${STARTING_POSITION_NEXT_MOVE[positions[1].toString()][0]}}`, function(error, payload) {
+        test.alexa.spoken(`taxi to {${STARTING_POSITION_NEXT_MOVE[state.positions[1].toString()][0]}}`, function(error, payload) {
           expect(payload.response.outputSpeech.ssml)
             .to.contain("Player 2, its your move");
 
@@ -77,14 +77,14 @@ it('Validates player move', function(done) {
             .to.contain("Player 1, its your move");
         
         expect(payload.sessionAttributes)
-          .to.not.be.null;
-        expect(payload.sessionAttributes.positions)
-          .to.not.be.null;
+          .to.not.be.undefined;
+        expect(payload.sessionAttributes.game_state)
+          .to.not.be.undefined;
 
-        const positions = payload.sessionAttributes.positions;
+        const state = payload.sessionAttributes.game_state;
 
         // palyer 1 move
-        test.alexa.spoken(`taxi to {${STARTING_POSITION_NEXT_MOVE[positions[1].toString()][1]}}`, function(error, payload) {
+        test.alexa.spoken(`taxi to {${STARTING_POSITION_NEXT_MOVE[state.positions[1].toString()][1]}}`, function(error, payload) {
           expect(payload.response.outputSpeech.ssml)
             .to.contain("Player 1, you cannot move");
 
@@ -111,14 +111,14 @@ it('Moves player by best transportation', function(done) {
             .to.contain("Player 1, its your move");
         
         expect(payload.sessionAttributes)
-          .to.not.be.null;
-        expect(payload.sessionAttributes.positions)
-          .to.not.be.null;
+          .to.not.be.undefined;
+        expect(payload.sessionAttributes.game_state)
+          .to.not.be.undefined;
 
-        const positions = payload.sessionAttributes.positions;
+        const state = payload.sessionAttributes.game_state;
 
         // palyer 1 move
-        test.alexa.spoken(`move to {${STARTING_POSITION_NEXT_MOVE[positions[1].toString()][0]}}`, function(error, payload) {
+        test.alexa.spoken(`move to {${STARTING_POSITION_NEXT_MOVE[state.positions[1].toString()][0]}}`, function(error, payload) {
           expect(payload.response.outputSpeech.ssml)
             .to.contain("Player 2, its your move");
 
