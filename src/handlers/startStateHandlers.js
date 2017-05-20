@@ -10,6 +10,29 @@ module.exports = Alexa.CreateStateHandler(Consts.GAME_STATES.START, {
         GameFlow.start(this);
     },
 
+    'PlayerMoveTaxi': function () {
+        if (this.attributes["turn"]) {
+            this.handler.state = Consts.GAME_STATES.TURN;
+            this.emitWithState('PlayerMoveTaxi', true);
+        }
+        else {
+            // game not started
+            this.emitWithState('Start', true);
+        }
+    },
+    'PlayerMoveBus': function () {
+        this.handler.state = Consts.GAME_STATES.TURN;
+        this.emitWithState('PlayerMoveBus', true);
+    },
+    'PlayerMoveTrain': function () {
+        this.handler.state = Consts.GAME_STATES.TURN;
+        this.emitWithState('PlayerMoveTrain', true);
+    },
+    'PlayerMoveAny': function () {
+        this.handler.state = Consts.GAME_STATES.TURN;
+        this.emitWithState('PlayerMoveAny', true);
+    },
+
     'AMAZON.HelpIntent': function () {
         this.handler.state = Consts.GAME_STATES.HELP;
         this.emitWithState('helpTheUser', true);
