@@ -128,3 +128,44 @@ it('Moves player by best transportation', function(done) {
     });
   });
 });
+
+it('Resumes play', function(done) {
+  test.alexa.launched(function(error, payload) {
+    expect(payload.response.outputSpeech.ssml)
+      .to.contain('Welcome to Scottsdale Yard. Are you ready to catch some bad hombres?');
+
+    // start game
+    test.alexa.spoken('start', function(error, payload) {
+      expect(payload.response.outputSpeech.ssml)
+        .to.contain('OK, lets get started');
+      
+      // start turn 1
+      test.alexa.spoken('yes', function(error, payload) {
+        expect(payload.response.outputSpeech.ssml)
+            .to.contain("Player 1, its your move");
+
+        const state = payload.sessionAttributes.game_state;
+
+        // palyer 1 move
+        test.alexa.spoken(`move to {${STARTING_POSITION_NEXT_MOVE[state.positions[1].toString()][0]}}`, function(error, payload) {
+          expect(payload.response.outputSpeech.ssml)
+            .to.contain("Player 2, its your move");
+
+          // stop session
+          test.alexa.intended('AMAZON.StopIntent', {}, function(error, payload) {
+            expect(payload.response.outputSpeech.ssml)
+              .to.contain("OK, Goodbye!");
+
+            // restart skill
+            test.alexa.intended('PlayerMoveAny', { "position": STARTING_POSITION_NEXT_MOVE[state.positions[2].toString()][0] }, function(error, payload) {
+              expect(payload.response.outputSpeech.ssml)
+                .to.contain("Player 3, its your move");
+
+              done();
+            });
+          });
+        });
+      });
+    });
+  });
+});

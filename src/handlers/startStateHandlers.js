@@ -41,6 +41,14 @@ module.exports = Alexa.CreateStateHandler(Consts.GAME_STATES.START, {
         const speechOutput = `Just play the game`;
         this.emit(':ask', speechOutput, speechOutput);
     },
+    'AMAZON.CancelIntent': function () {
+        const speechOutput = 'OK, Goodbye!';
+        this.emit(':tell', speechOutput);
+    },
+    'AMAZON.StopIntent': function () {
+        const speechOutput = 'OK, Goodbye!';
+        this.emit(':tell', speechOutput);
+    },
     'SessionEndedRequest': function () {
         const speechOutput = 'OK, Goodbye!';
         this.emit(':tell', speechOutput);
