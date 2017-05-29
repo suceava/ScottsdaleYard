@@ -37,8 +37,15 @@ module.exports = {
     // set turn
     state.turn = 1;
 
-    state.save(handler);
-    handler.emit(':askWithCard', speechOutput, speechOutput, Consts.GAME_NAME, speechOutput);
+    state.save(handler)
+      .then((response) => {
+        handler.emit(':askWithCard', speechOutput, speechOutput, Consts.GAME_NAME, speechOutput);
+      })
+      .catch((err) => {
+        //TODO:
+        console.log('Error in gameFlow.start');
+        console.log(err);
+      });
   },
 
   startTurn: function(handler) {
@@ -51,8 +58,15 @@ module.exports = {
     speech.say(`Starting turn ${state.turn}`);
     speech.pause('1s');
     
-    state.save(handler);
-    this.doMisterXMove(handler, speech);
+    state.save(handler)
+      .then((response) => {
+        this.doMisterXMove(handler, speech);
+      })
+      .catch((err) => {
+        //TODO:
+        console.log('Error in gameFlow.startTurn');
+        console.log(err);
+      });
   },
 
   doMisterXMove: function(handler, inSpeech) {
@@ -77,8 +91,15 @@ module.exports = {
     }
     speech.pause('1s');
 
-    state.save(handler);
-    this.startPlayerMove(handler, speech);
+    state.save(handler)
+      .then((response) => {
+        this.startPlayerMove(handler, speech);
+      })
+      .catch((err) => {
+        //TODO:
+        console.log('Error in gameFlow.doMisterXMove');
+        console.log(err);
+      });
   },
 
   startPlayerMove: function(handler, inSpeech) {
@@ -141,13 +162,25 @@ module.exports = {
 
     if (state.player < Game.CONSTS.MAX_PLAYERS) {
       state.player++;
-      state.save(handler);
-      this.startPlayerMove(handler);
+      state.save(handler)
+        .then((response) => {
+          this.startPlayerMove(handler);
+        })
+        .catch((err) => {
+          //TODO:
+          console.log(err);
+        });
     }
     else if (turn < Game.CONSTS.MAX_TURNS) {
       state.turn++;
-      state.save(handler);
-      this.startTurn(handler);    
+      state.save(handler)
+        .then((response) => {
+          this.startTurn(handler);    
+        })
+        .catch((err) => {
+          //TODO:
+          console.log(err);
+        });
     }
     else {
       handler.emit(':tell', 'Game over, man! Game Over!');
