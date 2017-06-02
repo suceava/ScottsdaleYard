@@ -1,5 +1,4 @@
 module.exports = {
-  APP_ID:'ScottsdaleYard',
   GAME_NAME: 'Scottsdale Yard',
   GAME_STATES: {
       START: '_STARTMODE',  // Entry point, start the game.

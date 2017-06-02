@@ -1,5 +1,7 @@
-const credentials = {};
-const dynasty = require('dynasty')(credentials, 'http://localhost:8000');
+const credentials = {
+  region: 'us-east-1'
+};
+const dynasty = require('dynasty')(credentials, process.env.AWS_ACCESS_KEY_ID ? undefined : 'http://localhost:8000');
 
 const TABLE_NAME = 'ScottsdaleYard';
 const ATTR_NAME = 'game_state';

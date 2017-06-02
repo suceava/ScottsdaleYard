@@ -171,7 +171,7 @@ module.exports = {
           console.log(err);
         });
     }
-    else if (turn < Game.CONSTS.MAX_TURNS) {
+    else if (state.turn < Game.CONSTS.MAX_TURNS) {
       state.turn++;
       state.save(handler)
         .then((response) => {

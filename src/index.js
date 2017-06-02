@@ -21,7 +21,7 @@ const newSessionHandlers = {
     else if (this.event.request.type === 'IntentRequest') {
       // skill started with an intent => try to load state from DB
       const intent = this.event.request.intent.name;
-      console.log(`current intent: ${intent}, current state:${this.handler.state}`);
+      console.log(`current intent: ${intent}, current state:${this.event.request.intent.slots}`);
 
       new GameState()
         .load(this)
@@ -59,6 +59,6 @@ exports.handler = (event, context) => {
         gameStateHandlers, 
         turnStateHandlers, 
         helpHandlers);
-    alexa.APP_ID = Consts.APP_ID;
+    alexa.appId = process.env.ALEXA_APP_ID;
     alexa.execute();
 };

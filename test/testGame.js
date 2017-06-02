@@ -129,6 +129,53 @@ it('Moves player by best transportation', function(done) {
   });
 });
 
+it('Continues to next turn', function(done) {
+  test.alexa.launched(function(error, payload) {
+    expect(payload.response.outputSpeech.ssml)
+      .to.contain('Welcome to Scottsdale Yard. Are you ready to catch some bad hombres?');
+
+    // start game
+    test.alexa.spoken('start', function(error, payload) {
+      expect(payload.response.outputSpeech.ssml)
+        .to.contain('OK, lets get started');
+      
+      // start turn 1
+      test.alexa.spoken('yes', function(error, payload) {
+        expect(payload.response.outputSpeech.ssml)
+            .to.contain("Player 1, its your move");
+
+        const state = payload.sessionAttributes.game_state;
+
+        // palyer 1 move
+        test.alexa.spoken(`move to {${STARTING_POSITION_NEXT_MOVE[state.positions[1].toString()][0]}}`, function(error, payload) {
+          expect(payload.response.outputSpeech.ssml)
+            .to.contain("Player 2, its your move");
+
+          // palyer 2 move
+          test.alexa.spoken(`move to {${STARTING_POSITION_NEXT_MOVE[state.positions[2].toString()][0]}}`, function(error, payload) {
+            expect(payload.response.outputSpeech.ssml)
+              .to.contain("Player 3, its your move");
+
+            // palyer 3 move
+            test.alexa.spoken(`move to {${STARTING_POSITION_NEXT_MOVE[state.positions[3].toString()][0]}}`, function(error, payload) {
+              expect(payload.response.outputSpeech.ssml)
+                .to.contain("Player 4, its your move");
+
+              // palyer 4 move
+              test.alexa.spoken(`move to {${STARTING_POSITION_NEXT_MOVE[state.positions[4].toString()][0]}}`, function(error, payload) {
+                expect(payload.response.outputSpeech.ssml)
+                  .to.contain("Mister X took the");
+
+                done();
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
 it('Resumes play', function(done) {
   test.alexa.launched(function(error, payload) {
     expect(payload.response.outputSpeech.ssml)
