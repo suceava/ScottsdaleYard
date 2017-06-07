@@ -7,6 +7,17 @@ module.exports = Alexa.CreateStateHandler(Consts.GAME_STATES.START, {
         GameFlow.start(this);
     },
     'AMAZON.YesIntent': function () {
+        if (handler.attributes['ask_continue']) {
+            // Yes, continue saved game
+            GameFlow.continue(this);
+        }
+        else {
+            // Yes, start fresh game
+            GameFlow.start(this);
+        }
+    },
+    'AMAZON.NoIntent': function () {
+        // No, do not continue saved game
         GameFlow.start(this);
     },
 

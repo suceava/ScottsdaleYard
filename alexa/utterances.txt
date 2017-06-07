@@ -10,9 +10,21 @@ PlayerMoveAny move me to {position}
 
 PlayerMoveTaxi taxi to {position}
 PlayerMoveTaxi taxi {position}
+PlayerMoveTaxi to move to {position}
+PlayerMoveTaxi that I move to {position}
+PlayerMoveTaxi to move me to {position}
+PlayerMoveTaxi move me to {position}
 
 PlayerMoveBus bus to {position}
 PlayerMoveBus bus {position}
+PlayerMoveBus to move to {position}
+PlayerMoveBus that I move to {position}
+PlayerMoveBus to move me to {position}
+PlayerMoveBus move me to {position}
 
 PlayerMoveTrain train to {position}
 PlayerMoveTrain train {position}
+PlayerMoveTrain to move to {position}
+PlayerMoveTrain that I move to {position}
+PlayerMoveTrain to move me to {position}
+PlayerMoveTrain move me to {position}

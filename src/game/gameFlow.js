@@ -48,7 +48,24 @@ module.exports = {
       });
   },
 
+  continue: function(handler) {
+    // continue saved game => re-iterate game state before continuing turn
+    this.handler.state = Consts.GAME_STATES.TURN;
+
+    const state = new GameState(handler);
+
+    const speech = new Speech();
+    speech.say(`It is turn ${state.turn}`);
+    speech.pause('1s');
+    for (let i = 1; i < state.positions.length; i++) {
+      speech.pause('1s');
+      speech.say(`Player ${i} is at ${state.positions[i]}`);
+    }
+    speech.pause('1s');
+  },
+
   startTurn: function(handler) {
+    // start new turn
     handler.handler.state = Consts.GAME_STATES.TURN;
 
     const state = new GameState(handler);
