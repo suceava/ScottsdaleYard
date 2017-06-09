@@ -274,7 +274,7 @@ const GAME_LOGIC = {
     //#endregion
   },
 
-  // returns an array with 200 integers.  
+  // returns an array with 200 integers.
   // each integer represents the distance from that location to the input location
   _generateDistanceArray: function(location) {
     const distanceArray = Array(200).fill(999);
@@ -326,7 +326,7 @@ const GAME_LOGIC = {
     // Mr. X
     let random = Math.floor((Math.random() * this.CONSTS.MRX_STARTING_POSITIONS.length) + 1);
     positions.push(this.CONSTS.MRX_STARTING_POSITIONS[random - 1]);
-    
+
     // Players
     const startingPos = this.CONSTS.PLAYER_STARTING_POSITIONS;
     const len = startingPos.length - 1;
@@ -335,7 +335,7 @@ const GAME_LOGIC = {
       do {
         random = Math.floor(Math.random() * len);
         pos = startingPos[random];
-      } 
+      }
       while (positions.indexOf(pos) >= 0);
 
       positions.push(pos);
@@ -421,6 +421,204 @@ const GAME_LOGIC = {
     };
   },
 
+  // move Mr. X and return his move
+  moveMrX2: function(positions, turn) {
+    // this is the second shot at improving the AI
+
+    // generate the players' heat maps
+    const heatMaps = []; // null for index 0
+    for (let i = 1; i <= this.CONSTS.MAX_PLAYERS; i++) {
+      heatMaps.push(this._generateDistanceArray(positions[i]));
+    }
+
+    // now compare the heatmaps and combine into one map by taking the lowest value for each
+    var fHeatMap = [];
+    for (let i = 0; i < 200; i++) {
+      let thisNumber = 999;
+      // in heatMaps array player 1 is at index 0
+      for (let j = 0; j < this.CONSTS.MAX_PLAYERS; j++) {
+        if (heatMaps[j][i] < thisNumber) {
+          thisNumber = heatMaps[j][i];
+        }
+      }
+      fHeatMap.push(thisNumber);
+    }
+
+    // ok so now we get into the AI
+
+    // start by creating an array of all nodes around Mr X's node with a radius
+    // this array should contain the NodeLocation and its current heatmap number
+
+    // first get the raw locations in a radius around Mr. X:
+    var NodeLocationArrayRelativeToMrX = this._getNodeLocationArrayRelativeToMrX(positions, 2);
+
+    // add the heatmap sum to the array
+    var NodeLocationArrayWithHeatmapSums = this._getNodeLocationArrayWithHeatmapSums(NodeLocationArrayRelativeToMrX);
+
+    // add the heatmap value to the array as the third element and make the final array in which each element is an array with three integers:
+    //    LOCATION, HEATMAP SUM, and HEATMAP value
+    // these are the three things we need to take a stab at some non-retarded AI
+    var DataArray = [];
+
+    for (var i = 0; i < NodeLocationArrayWithHeatmapSums.length; i++) {
+      var thisArray = [];
+      thisArray.push (NodeLocationArrayWithHeatmapSums[i][0]);
+      thisArray.push (NodeLocationArrayWithHeatmapSums[i][1]);
+      thisArray.push (fHeatMap[NodeLocationArrayWithHeatmapSums[i][0]]);
+      DataArray.push(thisArray);
+    }
+
+    DataArray.sort(this._compareHeatmapSums);
+    // DataArray now is complete for a 'radius' number of hops with ratings for heatmap and heatmapSum
+
+    // AI decisions start now
+
+    // SAFE AI:
+    // Mr. X should first look for the location with the highest heatmapSum with a heatmap of 2 or greater (not potentially being insta-killed)
+    // After that he should look for the location with the highest heatmapSum with a heatmap of 1
+    // Then find the best path to that location (it may not be adjacent to Mr. X)
+
+    // *** BUT THE DATAARRAY NEEDS A PASS ON IT FIRST:
+    // If MrX wants to go 2 or 3 spaces away to a spot, he needs to make sure first that his NEXT MOVE isn't on a heatmap of 1 or less...
+    // ...so do another pass on the DataArray and update the heatmap on any entry that isn't next to Mr. X
+
+    for (var i = 0; i < DataArray.length; i++) {
+      // look at each item and replace it's heatmap, which = DataArray[i][2]
+      // remember that each element in DataArray has LOCATION, HEATMAP SUM, and HEATMAP value
+      var firstLocationAndTransport = this._findStartingPointOnPathAndTransportation(positions[0],DataArray[i][0]);
+      DataArray[i][2] = fHeatMap[firstLocationAndTransport[0]];
+    }
+
+    // OK, now search through the entries!
+    var destinationLocation = this._findBestDestination(DataArray, 2);
+    var boolDead = false;
+    if (destinationLocation < 1) {
+      destinationLocation = this._findBestDestination(DataArray, 1);
+      if (destinationLocation < 1) {
+        // MRX HAS NO MOVEZZZZZZZ IF THIS GETS HIT
+        boolDead = true;
+      }
+    }
+
+    // now you have the starting point, positions[0], and the destination, destinationLocation...
+    // ...figure out where Mr X should move next!
+    // loop through the heatmap for the Mr. X location and look at all the spots connected to it (heatmap value of 1)...
+    // ...these are the only places he can move this turn!
+
+    var firstLocationAndTransport = this._findStartingPointOnPathAndTransportation(positions[0],destinationLocation);
+    // firstLocationAndTransport[0] = the location that Mr X should move to next!
+    // firstLocationAndTransport[1] = the transportation that Mr X will use to get to that spot (0:taxi, 1: bus, etc.)
+
+
+    return {
+      position: firstLocationAndTransport[0],
+      transportation:  firstLocationAndTransport[1], /// ???
+      isVisible: this.CONSTS.MRX_VISIBLE_TURNS.indexOf(turn) >= 0,
+      dead: boolDead // nowhere to move
+    };
+  },
+
+  _findStartingPointOnPathAndTransportation: function(mrXLocation, destinationLocation) {
+    var thisDistance = 1000;
+    var thisFirstSpot = 0;
+    var thisTransportation = 0;
+
+    for (var i = 0; i < GAME_LOGIC.CONSTS.NODES[mrXLocation].length; i++) {
+      var thisLocation = GAME_LOGIC.CONSTS.NODES[mrXLocation][i][0];
+      if (GAME_LOGIC.CONSTS.HEAT_MAP[destinationLocation][thisLocation] < thisDistance) {
+        //see how far it is to our destination
+        thisDistance = GAME_LOGIC.CONSTS.HEAT_MAP[destinationLocation][thisLocation];
+        thisFirstSpot = thisLocation;
+        thisTransportation = GAME_LOGIC.CONSTS.NODES[mrXLocation][i][1];
+      }
+    }
+    var outputArray = [];
+    outputArray.push(thisFirstSpot);
+    outputArray.push(thisTransportation);
+    return outputArray;
+  },
+
+  _findBestDestination: function(LocationArray, threshold){
+    for (var i = 0; i < LocationArray.length; i++) {
+      if (LocationArray[i][2] >= threshold) {
+        return LocationArray[i][0];
+      }
+    }
+    return 0;
+  },
+
+  _compareHeatmapSums: function(a,b) {
+    // sort the data array...put the locations with the lowest heatmap first (those are locations that are most easily)
+      if (a[1] < b[1])
+        return -1;
+      if (a[1] > b[1])
+        return 1;
+      return 0;
+  },
+
+  _getNodeLocationArrayWithHeatmapSums: function(LocationArray) {
+    // pass in an array of integers related to location arrays
+    // pass out an array of [x,y] integer arrays where x is location and y is the matching heatmap sum
+    var LocationArrayWithHeatmapSums = [];
+    for (var i = 0; i < LocationArray.length; i++) {
+      var thisArray = [];
+      thisArray.push (LocationArray[i]);
+      thisArray.push (this._getHeatmapSum(LocationArray[i]));
+      LocationArrayWithHeatmapSums.push(thisArray);
+    }
+    return LocationArrayWithHeatmapSums;
+  },
+
+  _getHeatmapSum(location) {
+    // for the given location, calculate the static heatmap sum value (the sum of all heatmap integers for this location)
+    // ...and yes, for speed purposes this function should be calculated once and simply return constants
+
+    var heatmap = GAME_LOGIC.CONSTS.HEAT_MAP[location];
+    var heatmapSum = 0;
+    for (var i = 0; i < heatmap.length; i++) {
+      heatmapSum = heatmapSum + heatmap[i];
+    }
+    return heatmapSum;
+  },
+
+  _getNodeLocationArrayRelativeToMrX: function(positions, radius) {
+    // first get the locations in the radius specified
+    var LocationArray = [];
+    this._discoverNodeByRadius(positions[0], 0, LocationArray, radius);
+
+    // now return the array, but remove any duplicates
+    var LocationCleanArray = [];
+    var boolDoesLocationExistAlready = false;
+    for (var i = 0; i < LocationArray.length; i++) {
+      boolDoesLocationExistAlready = false;
+      for (var j = 0; j < LocationCleanArray.length; j++) {
+        if (LocationArray[i] == LocationCleanArray[j]) {
+          boolDoesLocationExistAlready = true;
+        }
+      }
+      if (!boolDoesLocationExistAlready) {
+        LocationCleanArray.push(LocationArray[i]);
+      }
+    }
+
+    return LocationCleanArray;
+  },
+
+  _discoverNodeByRadius: function(location, distance, LocationArray, radius) {
+    LocationArray.push(location);
+
+    var nodes = GAME_LOGIC.CONSTS.NODES[location];
+    for (var i = 0; i < nodes.length; i++)
+    {
+      var nextLocation = nodes[i][0];
+
+      if (distance + 1 <= radius) {
+        this._discoverNodeByRadius(nextLocation, distance + 1, LocationArray, radius);
+      }
+    }
+
+  },
+
   // returns a boolean indicating if a player can move from startPostion to endPosition
   isMoveValid: function(startPosition, endPosition, transportation) {
     const startNode = this._getNode(startPosition);
@@ -452,7 +650,7 @@ if( typeof exports !== 'undefined' ) {
     exports = module.exports = GAME_LOGIC;
   }
   exports.GAME_LOGIC = GAME_LOGIC;
-} 
+}
 else {
   this.GAME_LOGIC = GAME_LOGIC;
 }
