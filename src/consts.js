@@ -5,5 +5,5 @@ module.exports = {
       GAME:  '_GAMEMODE',   // Playing the game
       TURN:  '_TURNMODE',
       HELP:  '_HELPMODE'    // The user is asking for help.
-  }
+  } 
 }

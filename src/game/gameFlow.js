@@ -13,6 +13,9 @@ module.exports = {
 
     const state = new GameState();
 
+    // pick an AI
+    state.ai = Game.CONSTS.AI.EASY;
+
     // get starting positions
     // MrX is at index 0
     state.positions = Game.getStartingPositions();
@@ -50,18 +53,28 @@ module.exports = {
 
   continue: function(handler) {
     // continue saved game => re-iterate game state before continuing turn
-    this.handler.state = Consts.GAME_STATES.TURN;
+    handler.handler.state = Consts.GAME_STATES.TURN;
 
     const state = new GameState(handler);
 
     const speech = new Speech();
     speech.say(`It is turn ${state.turn}`);
     speech.pause('1s');
+    if (Game.CONSTS.MRX_VISIBLE_TURNS.indexOf(state.turn) >= 0) {
+      speech.say(`Mister X is at ${state.position[0]}`);
+    }
+    else {
+      speech.say(`Mister X is invisible`);
+      // TODO: should say where last seen?
+    }
+    speech.pause('1s');
     for (let i = 1; i < state.positions.length; i++) {
       speech.pause('1s');
       speech.say(`Player ${i} is at ${state.positions[i]}`);
     }
     speech.pause('1s');
+
+    this.startPlayerMove(handler, speech);
   },
 
   startTurn: function(handler) {
@@ -90,7 +103,12 @@ module.exports = {
     const state = new GameState(handler);
 
     // move Mr X
-    const mrx = Game.moveMrX(state.positions, state.turn);
+    const mrx = Game.moveMrX2(state.positions, state.turn);
+    if (mrx.dead) {
+      // Mr.X cannot safely move
+      this.completeGame(state, handler, true);
+      return;
+    }
 
     // save position
     state.positions[0] = mrx.position;
@@ -104,7 +122,7 @@ module.exports = {
       speech.say(`Mister X is at ${mrx.position}`);
     }
     else {
-      speech.say('Mister X is still invisible');
+      speech.say('Mister X is invisible');
     }
     speech.pause('1s');
 
@@ -131,7 +149,7 @@ module.exports = {
     handler.emit(':askWithCard', speechOutput)    
   },
 
-  playerMove: function (handler, position, transportation) {
+  doPlayerMove: function(handler, position, transportation) {
     const state = new GameState(handler);
     let localTransportation = transportation;
 
@@ -173,7 +191,7 @@ module.exports = {
     // check if player moved on top of Mister X
     if (Game.isMrXCaught(state.positions)) {
       // Mr X is done
-      handler.emit(':tell', 'Congratulations! You caught Mr. X');
+      this.completeGame(state, handler, true);
       return;
     }
 
@@ -200,7 +218,22 @@ module.exports = {
         });
     }
     else {
-      handler.emit(':tell', 'Game over, man! Game Over!');
+      // finished all turns
+      this.completeGame(state, handler, false);
+    }
+  },
+
+  completeGame: function(state, handler, mrXisCaught) {
+    // record the game history
+    state.saveHistoryDb(handler.event.session.user.userId);
+
+    if (mrXisCaught) {
+      // win
+      handler.emit(':tell', 'Congratulations! You caught Mr. X');
+    }
+    else {
+      // loss
+      handler.emit(':tell', 'Sorry, you failed to catch Mr. X in time');
     }
   }
 }

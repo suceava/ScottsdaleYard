@@ -44,9 +44,10 @@ const newSessionHandlers = {
         }
       })
       .catch((err) => {
-        // can't load state from DB
+        // can't load state from DB or something's wrong
+        console.log(err);
         this.handler.state = Consts.GAME_STATES.START;
-        this.emitWithState(intent);
+        this.emitWithState(this.event.request.intent);
       });
   },
 

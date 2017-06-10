@@ -4,6 +4,7 @@ const credentials = {
 const dynasty = require('dynasty')(credentials, process.env.AWS_ACCESS_KEY_ID ? undefined : 'http://localhost:8000');
 
 const TABLE_NAME = 'ScottsdaleYard';
+const TABLE_NAME_HISTORY = 'ScottsdaleYardHistory';
 const ATTR_NAME = 'game_state';
 
 function GameState(handler) {
@@ -13,26 +14,38 @@ function GameState(handler) {
   this.history = state.history || [];
   this.turn = state.turn || 0;
   this.player = state.player || 0;
+  this.ai = state.ai || 0;
 }
 
 //#region private methods
 
-function _dynamoTable() {
+function _stateTable() {
+  return _dynamoTable(TABLE_NAME, {
+      key_schema: {
+        hash: ['UserID', 'string']
+      }
+    });
+}
+function _historyTable() {
+  return _dynamoTable(TABLE_NAME_HISTORY, {
+      key_schema: {
+        hash: ['UserID', 'string'],
+        sort: ['GameTimestamp', 'string']
+      }
+    });
+}
+function _dynamoTable(tableName, schema) {
   return dynasty.list()
     .then((response) => {
-      if (response.TableNames.indexOf(TABLE_NAME) === -1) {
+      if (response.TableNames.indexOf(tableName) === -1) {
         // table doesn't exist => create the table
         return dynasty
-          .create(TABLE_NAME, {
-            key_schema: {
-              hash: ['UserID', 'string']
-            }
-          })
-          .return(dynasty.table(TABLE_NAME));
+          .create(tableName, schema)
+          .return(dynasty.table(tableName));
       }
       else {
         // table exists
-        return dynasty.table(TABLE_NAME);
+        return dynasty.table(tableName);
       }
     });
 }
@@ -62,7 +75,7 @@ GameState.prototype.save = function(handler) {
 }
 
 GameState.prototype.saveDb = function(userId) {
-  return _dynamoTable()
+  return _stateTable()
     .then((tbl) => {
       // insert seems to overwrite existing record which is ok for us
       return tbl.insert({
@@ -73,6 +86,22 @@ GameState.prototype.saveDb = function(userId) {
     .catch((err) => {
       //TODO:
       console.log('Error in gameState.saveDb');
+      console.log(err);
+    });
+}
+
+GameState.prototype.saveHistoryDb = function(userId) {
+  return _historyTable()
+    .then((tbl) => {
+      return tbl.insert({
+        UserID: userId,
+        GameTimestamp: new Date().toISOString(),
+        State: JSON.stringify(this)
+      });
+    })
+    .catch((err) => {
+      //TODO:
+      console.log('Error in gameState.saveHistoryDb');
       console.log(err);
     });
 }
@@ -89,6 +118,7 @@ GameState.prototype.load = function(handler) {
         this.history = state.history;
         this.turn = state.turn;
         this.player = state.player;
+        this.ai = state.ai;
 
         handler.attributes[ATTR_NAME] = this;
       }
@@ -100,9 +130,9 @@ GameState.prototype.load = function(handler) {
       console.log('Error in gameState.load');
       console.log(err);
     });
-},
+}
 GameState.prototype.loadDb = function(userId) {
-  return _dynamoTable()
+  return _stateTable()
     .then((tbl) => {
       return tbl.find(userId);
     })

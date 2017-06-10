@@ -82,6 +82,43 @@ describe('Game', function() {
             .to.contain("OK, Goodbye!");
 
           // restart skill
+          test.alexa.launched(function(error, payload) {
+            expect(payload.response.outputSpeech.ssml)
+              .to.contain("Welcome back to Scottsdale Yard");
+            expect(payload.response.outputSpeech.ssml)
+              .to.contain("would you like to continue");
+
+            // continue saved game
+            test.alexa.intended('AMAZON.YesIntent', {}, function(error, payload) {
+              expect(payload.response.outputSpeech.ssml)
+                .to.contain('It is turn 1');
+
+              done();
+            });
+          });
+        });
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+  });
+
+  it('resumes play with move', function(done) {
+    startGame()
+      .then((payload) => {
+        const state = payload.sessionAttributes.game_state;
+
+        return playerMove(1, 'taxi', state);
+      })
+      .then((payload) => {
+        const state = payload.sessionAttributes.game_state;
+
+        // stop session
+        test.alexa.intended('AMAZON.StopIntent', {}, function(error, payload) {
+          expect(payload.response.outputSpeech.ssml)
+            .to.contain("OK, Goodbye!");
+
+          // restart skill
           test.alexa.intended('PlayerMoveAny', { "position": STARTING_POSITION_NEXT_MOVE[state.positions[2].toString()][0] }, function(error, payload) {
             expect(payload.response.outputSpeech.ssml)
               .to.contain("Player 3, its your move");
