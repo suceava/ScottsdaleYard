@@ -25,194 +25,166 @@ const STARTING_POSITION_NEXT_MOVE = {
   "174": [161, 173]
 };
 
-it('Launches and starts', function(done) {
-  test.alexa.launched(function(error, payload) {
-    expect(payload.response.outputSpeech.ssml)
-      .to.contain('Welcome to Scottsdale Yard. Are you ready to catch some bad hombres?');
+describe('Game', function() {
 
-    // start game
-    test.alexa.spoken('start', function(error, payload) {
-      expect(payload.response.outputSpeech.ssml)
-        .to.contain('OK, lets get started');
-      
-      // start turn 1
-      test.alexa.spoken('yes', function(error, payload) {
-        expect(payload.response.outputSpeech.ssml)
-          .to.contain('Starting turn 1');
-        expect(payload.response.outputSpeech.ssml)
-            .to.contain("Player 1, its your move");
-        
-        expect(payload.sessionAttributes)
-          .to.not.be.undefined;
-        expect(payload.sessionAttributes.game_state)
-          .to.not.be.undefined;
-
-        const state = payload.sessionAttributes.game_state;
-
-        // palyer 1 move
-        test.alexa.spoken(`taxi to {${STARTING_POSITION_NEXT_MOVE[state.positions[1].toString()][0]}}`, function(error, payload) {
-          expect(payload.response.outputSpeech.ssml)
-            .to.contain("Player 2, its your move");
-
-          done();
-        });
+  it('launches and starts', function(done) {
+    startGame()
+      .then((payload) => done())
+      .catch((e) => {
+        console.log(e);
       });
-    });
   });
-});
 
-it('Validates player move', function(done) {
-  test.alexa.launched(function(error, payload) {
-    expect(payload.response.outputSpeech.ssml)
-      .to.contain('Welcome to Scottsdale Yard. Are you ready to catch some bad hombres?');
-
-    // start game
-    test.alexa.spoken('start', function(error, payload) {
-      expect(payload.response.outputSpeech.ssml)
-        .to.contain('OK, lets get started');
-      
-      // start turn 1
-      test.alexa.spoken('yes', function(error, payload) {
-        expect(payload.response.outputSpeech.ssml)
-            .to.contain("Player 1, its your move");
-        
-        expect(payload.sessionAttributes)
-          .to.not.be.undefined;
-        expect(payload.sessionAttributes.game_state)
-          .to.not.be.undefined;
-
+  it('validates player move', function(done) {
+    startGame()
+      .then((payload) => {
         const state = payload.sessionAttributes.game_state;
 
-        // palyer 1 move
+        // bad palyer 1 move
         test.alexa.spoken(`taxi to {${STARTING_POSITION_NEXT_MOVE[state.positions[1].toString()][1]}}`, function(error, payload) {
           expect(payload.response.outputSpeech.ssml)
             .to.contain("Player 1, you cannot move");
 
           done();
         });
+      })
+      .catch((e) => {
+        console.log(e);
       });
-    });
   });
-});
 
-it('Moves player by best transportation', function(done) {
-  test.alexa.launched(function(error, payload) {
-    expect(payload.response.outputSpeech.ssml)
-      .to.contain('Welcome to Scottsdale Yard. Are you ready to catch some bad hombres?');
-
-    // start game
-    test.alexa.spoken('start', function(error, payload) {
-      expect(payload.response.outputSpeech.ssml)
-        .to.contain('OK, lets get started');
-      
-      // start turn 1
-      test.alexa.spoken('yes', function(error, payload) {
-        expect(payload.response.outputSpeech.ssml)
-            .to.contain("Player 1, its your move");
-        
-        expect(payload.sessionAttributes)
-          .to.not.be.undefined;
-        expect(payload.sessionAttributes.game_state)
-          .to.not.be.undefined;
-
-        const state = payload.sessionAttributes.game_state;
-
-        // palyer 1 move
-        test.alexa.spoken(`move to {${STARTING_POSITION_NEXT_MOVE[state.positions[1].toString()][0]}}`, function(error, payload) {
-          expect(payload.response.outputSpeech.ssml)
-            .to.contain("Player 2, its your move");
-
+  it('continues to next turn', function(done) {
+    startGame()
+      .then((payload) => {
+        return playerMoves(payload, 'taxi');
+      })
+      .then((payload) => {
           done();
-        });
+      })
+      .catch((e) => {
+        console.log(e);
       });
-    });
   });
-});
 
-it('Continues to next turn', function(done) {
-  test.alexa.launched(function(error, payload) {
-    expect(payload.response.outputSpeech.ssml)
-      .to.contain('Welcome to Scottsdale Yard. Are you ready to catch some bad hombres?');
-
-    // start game
-    test.alexa.spoken('start', function(error, payload) {
-      expect(payload.response.outputSpeech.ssml)
-        .to.contain('OK, lets get started');
-      
-      // start turn 1
-      test.alexa.spoken('yes', function(error, payload) {
-        expect(payload.response.outputSpeech.ssml)
-            .to.contain("Player 1, its your move");
-
+  it('resumes play', function(done) {
+    startGame()
+      .then((payload) => {
         const state = payload.sessionAttributes.game_state;
 
-        // palyer 1 move
-        test.alexa.spoken(`move to {${STARTING_POSITION_NEXT_MOVE[state.positions[1].toString()][0]}}`, function(error, payload) {
-          expect(payload.response.outputSpeech.ssml)
-            .to.contain("Player 2, its your move");
+        return playerMove(1, 'taxi', state);
+      })
+      .then((payload) => {
+        const state = payload.sessionAttributes.game_state;
 
-          // palyer 2 move
-          test.alexa.spoken(`move to {${STARTING_POSITION_NEXT_MOVE[state.positions[2].toString()][0]}}`, function(error, payload) {
+        // stop session
+        test.alexa.intended('AMAZON.StopIntent', {}, function(error, payload) {
+          expect(payload.response.outputSpeech.ssml)
+            .to.contain("OK, Goodbye!");
+
+          // restart skill
+          test.alexa.intended('PlayerMoveAny', { "position": STARTING_POSITION_NEXT_MOVE[state.positions[2].toString()][0] }, function(error, payload) {
             expect(payload.response.outputSpeech.ssml)
               .to.contain("Player 3, its your move");
 
-            // palyer 3 move
-            test.alexa.spoken(`move to {${STARTING_POSITION_NEXT_MOVE[state.positions[3].toString()][0]}}`, function(error, payload) {
-              expect(payload.response.outputSpeech.ssml)
-                .to.contain("Player 4, its your move");
-
-              // palyer 4 move
-              test.alexa.spoken(`move to {${STARTING_POSITION_NEXT_MOVE[state.positions[4].toString()][0]}}`, function(error, payload) {
-                expect(payload.response.outputSpeech.ssml)
-                  .to.contain("Mister X took the");
-
-                done();
-              });
-            });
+            done();
           });
         });
+      })
+      .catch((e) => {
+        console.log(e);
       });
-    });
   });
-});
 
-it('Resumes play', function(done) {
-  test.alexa.launched(function(error, payload) {
-    expect(payload.response.outputSpeech.ssml)
-      .to.contain('Welcome to Scottsdale Yard. Are you ready to catch some bad hombres?');
-
-    // start game
-    test.alexa.spoken('start', function(error, payload) {
-      expect(payload.response.outputSpeech.ssml)
-        .to.contain('OK, lets get started');
-      
-      // start turn 1
-      test.alexa.spoken('yes', function(error, payload) {
-        expect(payload.response.outputSpeech.ssml)
-            .to.contain("Player 1, its your move");
-
+  it('moves player by best transportation', function(done) {
+    startGame()
+      .then((payload) => {
         const state = payload.sessionAttributes.game_state;
 
-        // palyer 1 move
-        test.alexa.spoken(`move to {${STARTING_POSITION_NEXT_MOVE[state.positions[1].toString()][0]}}`, function(error, payload) {
+        return playerMove(1, 'move', state);
+      })
+      .then((payload) => done())
+      .catch((e) => {
+        console.log(e);
+      });
+  });
+});
+
+
+//# region game helpers
+
+function startGame() {
+  return new Promise((resolve, reject) => {
+    test.alexa.launched(function(error, payload) {
+      expect(payload.response.outputSpeech.ssml)
+        .to.contain('Welcome to Scottsdale Yard. Are you ready to catch some bad hombres?');
+
+      // start game
+      test.alexa.spoken('start', function(error, payload) {
+        expect(payload.response.outputSpeech.ssml)
+          .to.contain('OK, lets get started');
+        
+        // start turn 1
+        test.alexa.spoken('yes', function(error, payload) {
           expect(payload.response.outputSpeech.ssml)
-            .to.contain("Player 2, its your move");
-
-          // stop session
-          test.alexa.intended('AMAZON.StopIntent', {}, function(error, payload) {
-            expect(payload.response.outputSpeech.ssml)
-              .to.contain("OK, Goodbye!");
-
-            // restart skill
-            test.alexa.intended('PlayerMoveAny', { "position": STARTING_POSITION_NEXT_MOVE[state.positions[2].toString()][0] }, function(error, payload) {
-              expect(payload.response.outputSpeech.ssml)
-                .to.contain("Player 3, its your move");
-
-              done();
-            });
-          });
+            .to.contain('Starting turn 1');
+          expect(payload.response.outputSpeech.ssml)
+              .to.contain("Player 1, its your move");
+        
+          expect(payload.sessionAttributes)
+            .to.not.be.undefined;
+          expect(payload.sessionAttributes.game_state)
+            .to.not.be.undefined;
+          
+          resolve(payload);
         });
       });
     });
   });
-});
+}
+function playerMoves(payload, transportation) {
+  const state = payload.sessionAttributes.game_state;
+
+  return new Promise((resolve, reject) => {
+    playerMoveRecursive(1, transportation, state, resolve, reject);
+  });
+}
+function playerMoveRecursive(player, transportation, state, resolve, reject)
+{
+  playerMove(player, transportation, state)
+    .then((payload) => {
+      if (player < 4) {
+        // next player
+        playerMoveRecursive(player + 1, transportation, state, resolve, reject);
+      }
+      else {
+        resolve();
+      }
+    })
+    .catch((e) => {
+      console.log(e);
+      reject();
+    });
+}
+function playerMove(player, transportation, state) {
+  transportation = transportation || 'move';
+
+  return new Promise((resolve, reject) => {
+    // palyer move
+    test.alexa.spoken(`${transportation} to {${STARTING_POSITION_NEXT_MOVE[state.positions[player].toString()][0]}}`, function(error, payload) {
+      if (player < 4) {
+        expect(payload.response.outputSpeech.ssml)
+          .to.contain(`Player ${player + 1}, its your move`);
+      }
+      else {
+        // another turn
+        expect(payload.response.outputSpeech.ssml)
+          .to.contain("Mister X took the");
+      }
+
+      // done
+      resolve(payload);
+    });
+  });
+}
+
+//# endregion
