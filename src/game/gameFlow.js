@@ -225,15 +225,16 @@ module.exports = {
 
   completeGame: function(state, handler, mrXisCaught) {
     // record the game history
-    state.saveHistoryDb(handler.event.session.user.userId);
-
-    if (mrXisCaught) {
-      // win
-      handler.emit(':tell', 'Congratulations! You caught Mr. X');
-    }
-    else {
-      // loss
-      handler.emit(':tell', 'Sorry, you failed to catch Mr. X in time');
-    }
+    state.saveHistoryDb(handler.event.session.user.userId)
+      .finally(() => {
+        if (mrXisCaught) {
+          // win
+          handler.emit(':tell', 'Congratulations! You caught Mr. X');
+        }
+        else {
+          // loss
+          handler.emit(':tell', 'Sorry, you failed to catch Mr. X in time');
+        }
+      });
   }
 }

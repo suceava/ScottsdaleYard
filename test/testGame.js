@@ -22,7 +22,24 @@ const STARTING_POSITION_NEXT_MOVE = {
   "138": [124, 139],
   "141": [133, 140],
   "155": [156, 153],
-  "174": [161, 173]
+  "174": [161, 173],
+
+  // move back to original position
+  "15": [26],
+  "22": [34],
+  "23": [13],
+  "41": [29],
+  "49": [50],
+  "69": [53],
+  "93": [94],
+  "102": [103],
+  "105": [91],
+  "111": [112],
+  "116": [117],
+  "124": [123],
+  "133": [141],
+  "156": [155],
+  "161": [174]
 };
 
 describe('Game', function() {
@@ -57,6 +74,19 @@ describe('Game', function() {
     startGame()
       .then((payload) => {
         return playerMoves(payload, 'taxi');
+      })
+      .then((payload) => {
+          done();
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+  });
+
+  it('continues to next turn with generic move', function(done) {
+    startGame()
+      .then((payload) => {
+        return playerMoves(payload, 'move');
       })
       .then((payload) => {
           done();
@@ -144,6 +174,20 @@ describe('Game', function() {
         console.log(e);
       });
   });
+
+  it('finishes a game', function(done) {
+    this.timeout(10000)
+    startGame()
+      .then((payload) => {
+        return playTurns(payload, 'move');
+      })
+      .then((payload) => {
+          done();
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+  });
 });
 
 
@@ -178,6 +222,30 @@ function startGame() {
     });
   });
 }
+function playTurns(payload, transportation) {
+  const state = payload.sessionAttributes.game_state;
+
+  return new Promise((resolve, reject) => {
+    playTurnRecursive(payload, 1, transportation, state, resolve, reject);
+  });
+}
+function playTurnRecursive(payload, turn, transportation, state, resolve, reject) {
+  playerMoves(payload, transportation)
+    .then((payload) => {
+      if (turn < 22) {
+        // next turn
+        playTurnRecursive(payload, turn + 1, transportation, state, resolve, reject);
+      }
+      else {
+        resolve(payload);
+      }
+    })
+    .catch((e) => {
+      console.log(e);
+      reject();
+    });
+}
+
 function playerMoves(payload, transportation) {
   const state = payload.sessionAttributes.game_state;
 
@@ -194,7 +262,7 @@ function playerMoveRecursive(player, transportation, state, resolve, reject)
         playerMoveRecursive(player + 1, transportation, state, resolve, reject);
       }
       else {
-        resolve();
+        resolve(payload);
       }
     })
     .catch((e) => {
@@ -208,14 +276,24 @@ function playerMove(player, transportation, state) {
   return new Promise((resolve, reject) => {
     // palyer move
     test.alexa.spoken(`${transportation} to {${STARTING_POSITION_NEXT_MOVE[state.positions[player].toString()][0]}}`, function(error, payload) {
-      if (player < 4) {
+      if (payload.response.shouldEndSession && state.turn < 22) {
+        // game finished before all turns => we caught Mr. X ??
+        expect(payload.response.outputSpeech.ssml)
+          .to.contain("Congratulations! You caught Mr. X");
+      }
+      else if (player < 4) {
         expect(payload.response.outputSpeech.ssml)
           .to.contain(`Player ${player + 1}, its your move`);
       }
-      else {
+      else if (state.turn < 22) {
         // another turn
         expect(payload.response.outputSpeech.ssml)
           .to.contain("Mister X took the");
+      }
+      else {
+        // game finished
+        expect(payload.response.outputSpeech.ssml)
+          .to.contain("Sorry, you failed to catch");
       }
 
       // done

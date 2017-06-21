@@ -47,6 +47,11 @@ function _dynamoTable(tableName, schema) {
         // table exists
         return dynasty.table(tableName);
       }
+    })
+    .catch((err) => {
+      //TODO:
+      console.log('Error in gameState._dynamoTable');
+      console.log(err);
     });
 }
 
@@ -109,8 +114,6 @@ GameState.prototype.saveHistoryDb = function(userId) {
 GameState.prototype.load = function(handler) {
   return this.loadDb(handler.event.session.user.userId)
     .then((data) => {
-      console.log('load');
-      console.log(data);
       if (data) {
         const state = JSON.parse(data.State);
 
