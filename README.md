@@ -6,10 +6,14 @@ ScottsdaleYard
 
 # Running the DynamoDB locally #
 From command line (does not work in PowerShell)
+
 ```java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -inMemory```
 
 # Querying/checking local DB #
 List tables:
+
 ```aws dynamodb list-tables  --endpoint-url http://localhost:8000```
+
 List rows in table:
+
 ```aws dynamodb scan --table-name ScottsdaleYard  --endpoint-url http://localhost:8000```
