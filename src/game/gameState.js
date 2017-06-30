@@ -126,6 +126,10 @@ GameState.prototype.load = function(handler) {
         this.turn = state.turn;
         this.player = state.player;
         this.ai = state.ai;
+        if (state.mrx) {
+          this.mrx.speed_tokens = state.mrx.speed_tokens;
+          this.mrx.potential_positions = state.mrx.potential_positions;
+        }
 
         handler.attributes[ATTR_NAME] = this;
       }
