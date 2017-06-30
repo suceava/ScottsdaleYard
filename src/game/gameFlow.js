@@ -103,7 +103,7 @@ module.exports = {
     const state = new GameState(handler);
 
     // move Mr X
-    const mrx = Game.moveMrX2(state.positions, state.turn);
+    const mrx = this.moveMrX(state);
     if (mrx.dead) {
       // Mr.X cannot safely move
       this.completeGame(state, handler, true);
@@ -112,6 +112,10 @@ module.exports = {
 
     // save position
     state.positions[0] = mrx.position;
+    // save tokens
+    state.mrx.speed_tokens = mrx.speedTokens;
+    // save potentials
+    state.mrx.potential_positions = mrx.potentialPositions;
     // save history
     state.addHistory(0, mrx.position, mrx.transportation);
 
@@ -135,6 +139,19 @@ module.exports = {
         console.log('Error in gameFlow.doMisterXMove');
         console.log(err);
       });
+  },
+
+
+  // move Mr. X and return his move
+  moveMrX: function(state) {
+    switch (state.ai) {
+      case Game.CONSTS.AI.DRUNK:
+        return Game.moveMr_Drunk(state.positions, state.turn);
+      case Game.CONSTS.AI.EASY:
+        return Game.moveMrX_Easy(state.positions, state.turn);
+      case Game.CONSTS.AI.MEDIUM:
+        return Game.moveMrX_Medium(state.position, state.turn, state.mrx.speed_tokens, state.mrx.potential_positions);
+    }
   },
 
   startPlayerMove: function(handler, inSpeech) {

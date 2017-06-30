@@ -174,7 +174,9 @@ describe('Game', function() {
         console.log(e);
       });
   });
+});
 
+describe('Full game', function() {
   it('finishes a game', function(done) {
     this.timeout(10000)
     startGame()

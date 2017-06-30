@@ -15,6 +15,10 @@ function GameState(handler) {
   this.turn = state.turn || 0;
   this.player = state.player || 0;
   this.ai = state.ai || 0;
+  this.mrx = state.mrx || {
+    speed_tokens: 2,
+    potential_positions: []
+  };
 }
 
 //#region private methods

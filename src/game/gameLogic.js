@@ -9,8 +9,9 @@ const GAME_LOGIC = {
     MAX_PLAYERS: 4,
     MAX_TURNS: 22,
     AI: {
-      EASY: 0,
-      DRUNK: 1
+      DRUNK: 0,
+      EASY: 1,
+      MEDIUM: 2
     },
     TRANSPORTATION: {
       TAXI: 0,
@@ -351,8 +352,7 @@ const GAME_LOGIC = {
     return positions;
   },
 
-  // move Mr. X and return his move
-  moveMrX: function(positions, turn) {
+  moveMr_Drunk(positions, turn) {
     // generate the players' heat maps
     const heatMaps = []; // null for index 0
     for (let i = 1; i <= this.CONSTS.MAX_PLAYERS; i++) {
@@ -429,7 +429,7 @@ const GAME_LOGIC = {
   },
 
   // move Mr. X and return his move
-  moveMrX2: function(positions, turn) {
+  moveMrX_Easy(positions, turn) {
     // this is the second shot at improving the AI
 
     // generate the players' heat maps
@@ -523,6 +523,10 @@ const GAME_LOGIC = {
       isVisible: this.CONSTS.MRX_VISIBLE_TURNS.indexOf(turn) >= 0,
       dead: boolDead // nowhere to move
     };
+  },
+
+  moveMrX_Medium(positions, turn, speedTokens, potentialPositions) {
+
   },
 
   _findStartingPointOnPathAndTransportation: function(mrXLocation, destinationLocation) {
